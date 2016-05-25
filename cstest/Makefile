@@ -3,10 +3,10 @@ OUT=out
 all: clientudp serverudp
 
 clientudp: client.c
-	g++ client.c -o ${OUT}/clientudp
+	gcc -D_BSD_SOURCE -std=c99 client.c -o ${OUT}/clientudp
 
 serverudp: server.c
-	g++ server.c -o ${OUT}/serverudp
+	gcc -D_BSD_SOURCE -std=c99 server.c -o ${OUT}/serverudp
 
 clean:
 	rm -rf out/*
