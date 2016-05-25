@@ -1,7 +1,10 @@
 #! /bin/bash
 
+ROOT=`dirname "${BASH_SOURCE[0]}"`
 SERVER_IP=192.168.2.101
 SERVER_PORT=6738
+RUN_CLIENT=y
+RUN_SERVER=n
 
 while [ -n "$1" ]
 do
@@ -18,6 +21,14 @@ do
 				shift
 			fi
 			;;
+		-s)
+			RUN_SERVER=y
+			RUN_CLIENT=n
+			;;
+		-c)
+			RUN_CLIENT=y
+			RUN_SERVER=n
+			;;
 		*)
 			echo "$0 [-spi <val>] [-sport <val>]"
 			exit
@@ -26,9 +37,14 @@ do
 	shift
 done
 
-echo "[DBG]: Server IP is ${SERVER_IP}"
-echo "[DBG]: Server Port is ${SERVER_PORT}"
+echo "[DBG]: RUN_SERVER = ${RUN_SERVER}"
+echo "[DBG]: RUN_CLIENT = ${RUN_CLIENT}"
+echo "[DBG]: SERVER_IP = ${SERVER_IP}"
+echo "[DBG]: SERVER_PORT = ${SERVER_PORT}"
 
-./out/serverudp $SERVER_PORT &
-./out/clientudp $SERVER_IP $SERVER_PORT
+if [ $RUN_SERVER = 'y' ]; then
+	${ROOT}/out/serverudp $SERVER_PORT
+else
+	${ROOT}/out/clientudp $SERVER_IP $SERVER_PORT
+fi
 
