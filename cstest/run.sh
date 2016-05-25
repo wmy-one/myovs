@@ -1,7 +1,7 @@
 #! /bin/bash
 
 ROOT=`dirname "${BASH_SOURCE[0]}"`
-SERVER_IP=192.168.2.101
+SERVER_IP=10.1.1.4  # default match tap1
 SERVER_PORT=6738
 RUN_CLIENT=y
 RUN_SERVER=n
