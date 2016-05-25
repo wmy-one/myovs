@@ -67,3 +67,19 @@ if [ $? -eq 1 ]; then
 	echo -e "\033[31mPING TEST FAILED\033[0m"
 	exit
 fi
+
+echo -e "\033[32m================> Here are the network topology of this script.	\033[0m"
+echo -e "\033[32m------------------                             ------------------	\033[0m"
+echo -e "\033[32m|                |                             |                |	\033[0m"
+echo -e "\033[32m|         -------|Veth Pair           Veth Pair|-------         |	\033[0m"
+echo -e "\033[32m|         | tap1 |------                -------| tap2 |         |	\033[0m"
+echo -e "\033[32m|         -------|     |                |      |-------         |	\033[0m"
+echo -e "\033[32m|                |     |                |      |                |	\033[0m"
+echo -e "\033[32m|Namespace 'ns1' |     |                |      | Namespace 'ns2'|	\033[0m"
+echo -e "\033[32m------------------     |                |      ------------------	\033[0m"
+echo -e "\033[32m                       v                v							\033[0m"
+echo -e "\033[32m                   ---------------------------						\033[0m"
+echo -e "\033[32m                   |ovs-tap1         ovs-tap2|						\033[0m"
+echo -e "\033[32m                   |                         |						\033[0m"
+echo -e "\033[32m                   |       Openvswith        |						\033[0m"
+echo -e "\033[32m                   ---------------------------						\033[0m"
