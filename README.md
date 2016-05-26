@@ -18,7 +18,8 @@ Network Topology:
 
 TODO
 -----
-- Need to add the flow table
+- Need to add the UDP packet's delay (based on iperf?)
+- Need to improve the CS program (mutil thread? iperf?)
 
 References:
 ------
