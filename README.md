@@ -35,6 +35,19 @@ References:
 
 [udp&tcp 对 epoll 的共用](6)
 
+[Openflow 90 minutes](7)
+
+[openflow-spec-v1.1.0.pdf](8)
+
+[Openv Switch 完全使用手册](9)
+
+[Comparing sFlow and NetFlow in a vSwitch](10)
+
+
+[10]: http://www.cnblogs.com/popsuper1982/p/3800582.html
+[9]: http://sdnhub.cn/index.php/openv-switch-full-guide/
+[8]: http://archive.openflow.org/documents/openflow-spec-v1.1.0.pdf
+[7]: https://www.nanog.org/meetings/nanog57/presentations/Monday/mon.tutorial.SmallWallace.OpenFlow.24.pdf
 [6]: http://blog.csdn.net/lipengfei634626165/article/details/8136715
 [5]: https://www.abc.se/~m6695/udp.html
 [4]: http://fosshelp.blogspot.com/2014/10/network-namespaces-openvswitch-veth.html
