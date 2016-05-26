@@ -52,6 +52,16 @@ ip netns exec ns1 ip addr add 10.1.1.4/24 dev tap1
 ip netns exec ns2 ip addr add 10.1.1.5/24 dev tap2
 
 
+########### Add the flow tables
+function add_port_to_flow {
+	PORT=$1
+	sudo ovs-ofctl add-flow $BRIDGE idle_timeout=180,priority=33001,udp,tp_dst=$PORT,actions=output:1
+}
+for i in {6738..6838}; do
+	add_port_to_flow $i
+done
+
+
 ########### Print some debug message
 echo -e "\033[32m================> Check the network status in \"ns1\" \033[0m"
 ip netns exec ns1 ifconfig -a tap1
@@ -59,6 +69,7 @@ ip netns exec ns1 route -n
 echo -e "\033[32m================> Check the network status in \"ns2\" \033[0m"
 ip netns exec ns2 ifconfig -a tap2
 ip netns exec ns2 route -n
+
 
 ########### Run ping test between tap1 and tap2
 echo -e "\033[32m================> Start ping test between \"tap1\" and \"tap2\" \033[0m"
@@ -83,3 +94,39 @@ echo -e "\033[32m                   |ovs-tap1         ovs-tap2|						\033[0m"
 echo -e "\033[32m                   |                         |						\033[0m"
 echo -e "\033[32m                   |       Openvswith        |						\033[0m"
 echo -e "\033[32m                   ---------------------------						\033[0m"
+
+
+################### Run UDP client/server test program
+ip netns exec ns1 ./cstest/run.sh -s &> /dev/null &
+ip netns exec ns2 ./cstest/run.sh -c &> /dev/null &
+
+
+################### Print the target "pps"
+current_packets=(0)
+previous_packets=(0)
+ports_pps=(0)
+total_pps=0
+
+while true; do
+	sudo ovs-ofctl dump-flows $BRIDGE > .result
+	sed -n '/tp_dst/p' .result | awk '{print $4}' | sed 's/[^0-9]//g' > .result.ports
+
+	port=0
+	total_pps=0
+
+	while read line; do
+		current_packets[$port]=$line
+		ports_pps[$port]=$((${current_packets[$port]} - ${previous_packets[$port]-0}));
+
+		total_pps=$((${total_pps} + ${ports_pps[$port]}));
+		previous_packets[$port]=${current_packets[$port]};
+
+		let 'port += 1'
+	done < .result.ports
+
+	date
+	total_pps=`echo "scale=5; $total_pps/1024/1024" | bc`
+	echo -e "\033[32mPorts's pps (1024 byte/packet) = ${total_pps}Mpps   \033[0m"
+
+	sleep 1;
+done;
