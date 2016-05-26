@@ -3,6 +3,8 @@
 ROOT=`dirname "${BASH_SOURCE[0]}"`
 SERVER_IP=10.1.1.4  # default match tap1
 SERVER_PORT=6738
+SERVER_PORT_NUM=100
+
 RUN_CLIENT=y
 RUN_SERVER=n
 
@@ -37,6 +39,13 @@ do
 				shift
 			fi
 			;;
+		-spn)
+			if [ -n $2 ]; then
+				SERVER_PORT_NUM=$2
+				shift
+			fi
+			;;
+
 		*)
 			echo "$0 [-spi <val>] [-sport <val>]"
 			exit
@@ -50,10 +59,11 @@ echo "[DBG]: RUN_SERVER = ${RUN_SERVER}"
 echo "[DBG]: RUN_CLIENT = ${RUN_CLIENT}"
 echo "[DBG]: SERVER_IP = ${SERVER_IP}"
 echo "[DBG]: SERVER_PORT = ${SERVER_PORT}"
+echo "[DBG]: SERVER_PORT_NUM = ${SERVER_PORT_NUM}"
 
 if [ $RUN_SERVER = 'y' ]; then
-	${PREFIX_CMD} ${ROOT}/out/serverudp $SERVER_PORT
+	${PREFIX_CMD} ${ROOT}/out/serverudp $SERVER_PORT $SERVER_PORT_NUM
 else
-	${PREFIX_CMD} ${ROOT}/out/clientudp $SERVER_IP $SERVER_PORT
+	${PREFIX_CMD} ${ROOT}/out/clientudp $SERVER_IP $SERVER_PORT $SERVER_PORT_NUM
 fi
 
