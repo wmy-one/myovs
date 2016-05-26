@@ -1,5 +1,7 @@
 #include "cs_com.h"
 
+static int stop = 0;
+
 struct udpclient {
 	struct sockaddr_in si_other;
 	int port;
@@ -16,7 +18,7 @@ static int udp_port_init(struct udpclient *client, const char *server_ip,
 
 	sfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (sfd == -1) {
-		printf("[ERROR]: failed at socket()\n");
+		ERR("failed at socket()\n");
 		return sfd;
 	}
 
@@ -24,7 +26,7 @@ static int udp_port_init(struct udpclient *client, const char *server_ip,
 	client->si_other.sin_family = AF_INET;
 	client->si_other.sin_port = htons(port);
 	if (inet_aton(server_ip, &client->si_other.sin_addr) == 0) {
-		printf("[ERROR]: failed at inet_aton()\n");
+		ERR("failed at inet_aton()\n");
 		close(sfd);
 		return -1;
 	}
@@ -43,7 +45,7 @@ static struct udpclient *udp_ports_init(const char *server_ip, int server_port,
 
 	client = (struct udpclient *)malloc(sizeof(*client) * port_num);
 	if (client == NULL) {
-		printf("[ERROR]: failed at client malloc()\n");
+		ERR("failed at client malloc()\n");
 		return NULL;
 	}
 
@@ -63,7 +65,7 @@ udp_port_init_failed:
 	return NULL;
 }
 
-static void udp_ports_deinit(struct udpclient *client, int len)
+static inline void udp_ports_deinit(struct udpclient *client, int len)
 {
 	for (int j = 0; j < len; j++)
 		close(client[j].sfd);
@@ -79,7 +81,7 @@ static int udpout_epoll_init(struct udpclient *client, int len)
 
 	epfd = epoll_create(len);
 	if (epfd <= 0) {
-		printf("[ERROR]: failed at epoll_create()\n");
+		ERR("failed at epoll_create()\n");
 		return -1;
 	}
 
@@ -88,7 +90,7 @@ static int udpout_epoll_init(struct udpclient *client, int len)
 		ev.events = EPOLLOUT | EPOLLET;
 		ret = epoll_ctl(epfd, EPOLL_CTL_ADD, client[i].sfd, &ev);
 		if (ret < 0) {
-			printf("[ERROR]: failed at EPOLL_CTL_ADD\n");
+			ERR("failed at EPOLL_CTL_ADD\n");
 			close(epfd);
 			return -1;
 		}
@@ -98,24 +100,36 @@ static int udpout_epoll_init(struct udpclient *client, int len)
 	return epfd;
 }
 
-static inline void udpout_epoll_deinit(int epfd)
+void init_send_buffer(char *buf)
 {
-	close(epfd);
+	struct timeval before;
+	uint32_t  sec, usec;
+
+	gettimeofday(&before, 0);
+	sec = htonl(before.tv_sec);
+	usec = htonl(before.tv_usec);
+
+	bzero(buf, BUFLEN);
+	set_send_buf_head(buf);
+	memcpy(buf+4, &sec, sizeof(sec));
+	memcpy(buf+8, &usec, sizeof(usec));
+}
+
+static void loop_over(int sig)
+{
+	stop = 1;
 }
 
 int main(int argc, char *argv[])
 {
 	struct udpclient *client;
-	int client_cnt = 0;
 	char buf[BUFLEN];
 	int i;
 
 	if (argc != 4) {
-		perror("ERROR: ./xxx [Host IP] [Start Port] [Ports Number]");
+		ERR("./xxx [Host IP] [Start port] [ports Number]");
 		return 1;
 	}
-
-	memset(buf, TEST_DATA, sizeof(buf));
 
 	const char *server_ip = argv[1];
 	int server_port = atoi(argv[2]);
@@ -126,35 +140,38 @@ int main(int argc, char *argv[])
 	ERROR_CHECK(client != NULL, direct_out);
 
 	int epfd = udpout_epoll_init(client, port_num);
-	ERROR_CHECK(epfd > 0, direct_out);
+	ERROR_CHECK(epfd > 0, udp_ports_init_failed);
 
 	struct epoll_event *events;
 	events = (struct epoll_event *)malloc(sizeof(*events) * port_num);
 	ERROR_CHECK(events != NULL, epoll_add_failed);
 
-	while (1) {
+	addsingal(SIGHUP, loop_over);
+	addsingal(SIGINT, loop_over);
+	addsingal(SIGTERM, loop_over);
+
+	while (!stop) {
 		int nfds = epoll_wait(epfd, events, port_num, -1);
 		for (i = 0; i < nfds; i++) {
 			if (events[i].events & EPOLLOUT) {
 				struct udpclient *clt = (struct udpclient *)events[i].data.ptr;
+
+				init_send_buffer(buf);
+
 				if (sendto(clt->sfd, buf, BUFLEN, 0, (struct sockaddr *)&clt->si_other,
-						   sizeof(struct sockaddr_in)) == -1) {
-					printf("[ERROR]: udp[%d] port[%d] send failed\n", clt->sfd, clt->port);
-				} else {
-					// TODO: need fix the losing packet problem
-					printf("[DBG]: udp[%d] port[%d] send success\n", clt->sfd, clt->port);
-				}
+						   sizeof(struct sockaddr_in)) == -1)
+					ERR("udp[%d] port[%d] send failed\n", clt->sfd, clt->port);
 			}
 		}
 	}
 
 	udp_ports_deinit(client, port_num);
-	udpout_epoll_deinit(epfd);
+	close(epfd);
 
 	return 0;
 
 epoll_add_failed:
-	udpout_epoll_deinit(epfd);
+	close(epfd);
 udp_ports_init_failed:
 	udp_ports_deinit(client, port_num);
 direct_out:
