@@ -7,6 +7,9 @@ if [ $? -eq 1 ]; then
 	exit
 fi
 
+trap 'exit' SIGINT
+trap 'kill $(jobs -p) &> /dev/null' EXIT
+
 BRIDGE=ykk-ovs-test
 
 # forcely clean up network environment
