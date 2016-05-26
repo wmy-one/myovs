@@ -1,3 +1,21 @@
+Network Topology:
+--------
+    ------------------                             ------------------
+    |                |                             |                |
+    |         -------|Veth Pair           Veth Pair|-------         |
+    |         | tap1 |------                -------| tap2 |         |
+    |         -------|     |                |      |-------         |
+    |                |     |                |      |                |
+    |Namespace "ns1" |     |                |      | Namespace "ns2"|
+    ------------------     |                |      ------------------
+                           v                v
+                       ---------------------------
+                       |ovs-tap1         ovs-tap2|
+                       |                         |
+                       |       Openvswith        |
+                       ---------------------------
+
+
 TODO
 -----
 - Need to add the flow table
@@ -16,7 +34,6 @@ References:
 [UDP made simple](5)
 
 [udp&tcp 对 epoll 的共用](6)
-
 
 [6]: http://blog.csdn.net/lipengfei634626165/article/details/8136715
 [5]: https://www.abc.se/~m6695/udp.html
