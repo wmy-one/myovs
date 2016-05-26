@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 	events = (struct epoll_event *)malloc(sizeof(*events) * port_num);
 	ERROR_CHECK(events != NULL, epoll_add_failed);
 
-	if (1) {
+	while (1) {
 		int nfds = epoll_wait(epfd, events, port_num, -1);
 		for (i = 0; i < nfds; i++) {
 			if (events[i].events & EPOLLOUT) {
