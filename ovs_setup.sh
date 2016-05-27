@@ -11,7 +11,7 @@ if [ -z $BRIDGE ]; then
 	BRIDGE=ykk-ovs-test
 fi
 
-trap 'exit' SIGINT
+trap 'exit 1' SIGINT
 trap 'kill $(jobs -p) &> /dev/null' EXIT
 
 # forcely clean up network environment
