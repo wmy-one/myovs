@@ -1,8 +1,6 @@
 #ifndef __CS_COMMON_HEAD__
 #define __CS_COMMON_HEAD__
 
-#include <arpa/inet.h>
-#include <fcntl.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <string.h>
@@ -10,11 +8,10 @@
 #include <stdlib.h>
 #include <strings.h>
 #include <signal.h>
-#include <sys/epoll.h>
-#include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/time.h>
-#include <unistd.h>
+
+#include "udp.h"
 
 #define ERR(format, ...) fprintf(stderr, "\e[1;31m[%s:%d]\e[0m" format "\n", __FILE__, __LINE__,  ##__VA_ARGS__)
 
@@ -47,14 +44,6 @@ static inline void set_send_buf_head(char *buf)
 	buf[2] = TEST_DATA; buf[3] = ~TEST_DATA;
 }
 
-static inline int setnonblocking(int fd)
-{
-	int old_opt = fcntl(fd, F_GETFL);
-	int new_opt = old_opt | O_NONBLOCK;
-	fcntl(fd, F_SETFL, new_opt);
-	return old_opt;
-}
-
 static int addsingal(int sig, void (*handler)(int))
 {
 	struct sigaction sa;
@@ -64,5 +53,6 @@ static int addsingal(int sig, void (*handler)(int))
 	sigfillset(&sa.sa_mask);
 	return sigaction(sig, &sa, NULL);
 }
+
 
 #endif /* __CS_COMMON_HEAD__ */
