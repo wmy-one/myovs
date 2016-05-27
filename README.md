@@ -15,6 +15,9 @@ Network Topology:
                        |       Openvswith        |
                        ---------------------------
 
+Usage:
+-----
+```sudo python test.py --help```
 
 TODO
 -----
