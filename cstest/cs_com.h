@@ -1,14 +1,13 @@
 #ifndef __CS_COMMON_HEAD__
 #define __CS_COMMON_HEAD__
 
-#include <netinet/in.h>
+#include <unistd.h>
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
 #include <stdlib.h>
-#include <strings.h>
 #include <signal.h>
-#include <sys/types.h>
+#include <sys/epoll.h>
 #include <sys/time.h>
 
 #include "udp.h"

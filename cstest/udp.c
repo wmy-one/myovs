@@ -1,3 +1,12 @@
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
+#include <sys/epoll.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
 #include "udp.h"
 
 int udp_port_init(struct udp *udp, const char *server_ip)

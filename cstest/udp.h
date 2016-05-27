@@ -2,13 +2,6 @@
 #define __UDP_H__
 
 #include <arpa/inet.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <strings.h>
-#include <sys/epoll.h>
-#include <sys/socket.h>
-#include <unistd.h>
 
 struct udp {
 	struct sockaddr_in si;
