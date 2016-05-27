@@ -56,11 +56,10 @@ ip link set dev ovs-tap2 up
 ip netns exec ns1 ip addr add 10.1.1.4/24 dev tap1
 ip netns exec ns2 ip addr add 10.1.1.5/24 dev tap2
 
-
 ########### Add the flow tables
 function add_port_to_flow {
 	PORT=$1
-	sudo ovs-ofctl add-flow $BRIDGE idle_timeout=180,priority=33001,udp,tp_dst=$PORT,actions=output:1
+	sudo ovs-ofctl add-flow $BRIDGE in_port=2,idle_timeout=180,priority=33001,udp,tp_dst=$PORT,actions=output:1
 }
 for i in {6738..6838}; do
 	add_port_to_flow $i
