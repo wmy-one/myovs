@@ -47,7 +47,13 @@ References:
 
 [Comparing sFlow and NetFlow in a vSwitch](10)
 
+[Working with an event loop](11)
 
+[[Libevent-users] multiple events handling](12)
+
+
+[12]: http://archives.seul.org/libevent/users/Jan-2010/msg00041.html
+[11]: http://www.wangafu.net/~nickm/libevent-book/Ref3_eventloop.html
 [10]: http://www.cnblogs.com/popsuper1982/p/3800582.html
 [9]: http://sdnhub.cn/index.php/openv-switch-full-guide/
 [8]: http://archive.openflow.org/documents/openflow-spec-v1.1.0.pdf
