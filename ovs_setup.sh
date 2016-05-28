@@ -7,6 +7,12 @@ if [ $? -eq 1 ]; then
 	exit
 fi
 
+ovs-vsctl --help &> /dev/null
+if [ $? != 0 ]; then
+	echo -e "\033[32mMissing Openvswitch, try to install them.\033[0m"
+	apt-get install openvswitch-controller openvswitch-switch openvswitch-datapath-source
+fi
+
 if [ -z $BRIDGE ]; then
 	BRIDGE=ykk-ovs-test
 	SERVER_IP=10.1.1.4
