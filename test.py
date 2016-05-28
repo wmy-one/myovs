@@ -47,7 +47,7 @@ def ovs_setting():
 def ping_test():
     # run the ping test
     debug("Ping test between \"tap1\" and \"tap2\"")
-    ret=os.system("ip netns exec ns1 ping -c 2 10.1.1.5")
+    ret=os.system("ip netns exec ns1 ping -c 4 10.1.1.5")
     if ret != 0:
         print '\033[1;31;40mPING test failed, please check your OVS setting. \033[0m'
         return -1
