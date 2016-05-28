@@ -169,10 +169,11 @@ int main(int argc, char *argv[])
 	// loop now...
 	event_base_dispatch(base);
 
-	printf("Average pps (%d byte/packet) = %fMpps\n", perbuf_size, g_avr_pps / 1000000.0);
-	printf("Average Latency = %.3fms\n", recaclu_delay_time(NULL, NULL) / 1000.0);
-	printf("Min Latency     = %.3fms\n", min_latency / 1000.0);
+	printf("--------------------------------------\n");
 	printf("Max Latency     = %.3fms\n", max_latency / 1000.0);
+	printf("Min Latency     = %.3fms\n", min_latency / 1000.0);
+	printf("Average Latency = %.3fms\n", recaclu_delay_time(NULL, NULL) / 1000.0);
+	printf("Average PPS (%d byte/packet) = %fMpps\n", perbuf_size, g_avr_pps / 1000000.0);
 
 	udp_ports_deinit(server, port_num);
 	return 0;
