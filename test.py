@@ -82,7 +82,7 @@ if __name__ == "__main__":
         udp_test()
 
     except SystemExit:
-        sys.exit(1)
+        pass
     except KeyboardInterrupt:
         pass
 
