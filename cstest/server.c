@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <event.h>
 #include <pthread.h>
 
@@ -116,8 +115,8 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	int start_port = atoi(argv[1]);
-	int port_num = atoi(argv[2]);
+	unsigned int start_port = atoi(argv[1]);
+	unsigned int port_num = atoi(argv[2]);
 	assert(start_port + port_num <= 65535);
 
 	// init server udp ports

@@ -47,11 +47,15 @@ int udp_port_init(struct udp *udp, const char *server_ip)
 	return 0;
 }
 
-struct udp *udp_ports_init(const char *server_ip, int start_port, int port_num)
+struct udp *udp_ports_init(const char *server_ip, unsigned int start_port,
+						   unsigned int port_num)
 {
 	struct udp *udp;
 	int ret;
 	int i;
+
+	if (start_port + port_num > 65535)
+		return NULL;
 
 	udp = (struct udp *)malloc(port_num * sizeof(*udp));
 	if (udp == NULL) {
@@ -83,11 +87,14 @@ static inline int setnonblocking(int fd)
 	return old_opt;
 }
 
-int udp_epoll_init(struct udp *udp, int len, int event)
+int udp_epoll_init(struct udp *udp, unsigned int len, int event)
 {
 	struct epoll_event ev;
 	int epfd;
 	int ret;
+
+	if (!udp || len == 0 || (event != EPOLLIN && event != EPOLLOUT))
+			return -1;
 
 	epfd = epoll_create(len);
 	if (epfd <= 0) {
@@ -110,8 +117,11 @@ int udp_epoll_init(struct udp *udp, int len, int event)
 	return epfd;
 }
 
-inline void udp_ports_deinit(struct udp *udp, int len)
+inline void udp_ports_deinit(struct udp *udp, unsigned int len)
 {
+	if (!udp || len == 0)
+		return;
+
 	for (int j = 0; j < len; j++)
 		close(udp[j].sfd);
 	free(udp);

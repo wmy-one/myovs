@@ -1,6 +1,7 @@
 #ifndef __CS_COMMON_HEAD__
 #define __CS_COMMON_HEAD__
 
+#include <assert.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
@@ -19,12 +20,6 @@
 #else
 #define DBG(format, ...)
 #endif
-
-#define ERROR_CHECK(con, destroy)										\
-		if (!(con)) {													\
-			printf("[ERROR]: Failed at %s:%d\n", __func__, __LINE__);	\
-			goto destroy;												\
-		}
 
 #define BUFLEN			1024
 #define TEST_DATA		((char)0xAA)

@@ -23,6 +23,9 @@ void init_send_buffer(char *buf)
 	struct timeval before;
 	uint32_t  sec, usec;
 
+	if (!buf)
+		return;
+
 	gettimeofday(&before, 0);
 	sec = htonl(before.tv_sec);
 	usec = htonl(before.tv_usec);
@@ -45,19 +48,26 @@ int main(int argc, char *argv[])
 	}
 
 	const char *server_ip = argv[1];
-	int server_port = atoi(argv[2]);
-	int port_num = atoi(argv[3]);
-	ERROR_CHECK(server_port + port_num <= 65535, direct_out);
+	unsigned int server_port = atoi(argv[2]);
+	unsigned int port_num = atoi(argv[3]);
+	assert(server_port + port_num <= 65535);
 
 	client = udp_ports_init(server_ip, server_port, port_num);
-	ERROR_CHECK(client != NULL, direct_out);
+	assert(client != NULL);
 
 	int epfd = udp_epoll_init(client, port_num, EPOLLOUT);
-	ERROR_CHECK(epfd > 0, udp_ports_init_failed);
+	if (epfd <= 0) {
+		udp_ports_deinit(client, port_num);
+		return -1;
+	}
 
 	struct epoll_event *events;
 	events = (struct epoll_event *)malloc(sizeof(*events) * port_num);
-	ERROR_CHECK(events != NULL, epoll_add_failed);
+	if (events == NULL) {
+		close(epfd);
+		udp_ports_deinit(client, port_num);
+		return -1;
+	}
 
 	addsingal(SIGHUP, loop_over);
 	addsingal(SIGINT, loop_over);
@@ -84,11 +94,4 @@ int main(int argc, char *argv[])
 	close(epfd);
 
 	return 0;
-
-epoll_add_failed:
-	close(epfd);
-udp_ports_init_failed:
-	udp_ports_deinit(client, port_num);
-direct_out:
-	return -1;
 }
