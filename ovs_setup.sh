@@ -67,7 +67,9 @@ function add_port_to_flow {
 	sudo ovs-ofctl add-flow $BRIDGE in_port=2,idle_timeout=180,priority=33001,udp,tp_dst=$PORT,actions=output:1
 }
 
-for i in $TEST_PORTS; do
+i=$TEST_PORTS
+while [ $i -gt 0 ]; do
+	let 'i -= 1'
 	add_port_to_flow $(($i + 6738))
 done
 
