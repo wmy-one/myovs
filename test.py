@@ -9,6 +9,8 @@ import signal
 import sys
 import time
 
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 if os.geteuid() != 0:
     print '\033[1;31;40mThis program must be run as root. Aborting.\033[0m'
     sys.exit(1)
