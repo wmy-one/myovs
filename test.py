@@ -22,7 +22,11 @@ parser.add_argument("-v", help="enable print some debug messages and keep the OV
 parser.add_argument("-t", help="time in seconds to test (default 10 secs)", default=10, type=int)
 args = parser.parse_args()
 
+# set up the ovs parameters
 os.environ["BRIDGE"]="ykk-ovs-test"
+os.environ["SERVER_IP"]="10.1.1.4"
+os.environ["CLIENT_IP"]="10.1.1.5"
+os.environ["TEST_PORTS"]="100"
 
 def debug(string):
     print '\033[1;32;40m';
@@ -49,7 +53,7 @@ def ovs_setting():
 def ping_test():
     # run the ping test
     debug("Ping test between \"tap1\" and \"tap2\"")
-    ret=os.system("ip netns exec ns1 ping -c 4 10.1.1.5")
+    ret=os.system("ip netns exec ns1 ping -c 4 ${CLIENT_IP}")
     if ret != 0:
         print '\033[1;31;40mPING test failed, please check your OVS setting. \033[0m'
         return -1
@@ -57,8 +61,8 @@ def ping_test():
 
 def udp_test():
     # run udp test on background
-    os.system("ip netns exec ns1 ./cstest/run.sh -s &")
-    os.system("ip netns exec ns2 ./cstest/run.sh -c &> /dev/null &")
+    os.system("ip netns exec ns1 ./cstest/run.sh -s -spn $TEST_PORTS &")
+    os.system("ip netns exec ns2 ./cstest/run.sh -c -spn $TEST_PORTS &")
 
     # wait for test timeout
     debug("Start to listen the Packet-Per-Second in server")

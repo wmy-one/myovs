@@ -9,6 +9,9 @@ fi
 
 if [ -z $BRIDGE ]; then
 	BRIDGE=ykk-ovs-test
+	SERVER_IP=10.1.1.4
+	CLIENT_IP=10.1.1.5
+	TEST_PORTS=100
 fi
 
 trap 'exit 1' SIGINT
@@ -49,16 +52,17 @@ ip link set dev ovs-tap2 up
 
 
 ########### Assgin IP address to "tap1" and "tap2"
-ip netns exec ns1 ip addr add 10.1.1.4/24 dev tap1
-ip netns exec ns2 ip addr add 10.1.1.5/24 dev tap2
+ip netns exec ns1 ip addr add ${SERVER_IP}/24 dev tap1
+ip netns exec ns2 ip addr add ${CLIENT_IP}/24 dev tap2
 
 ########### Add the flow tables
 function add_port_to_flow {
 	PORT=$1
 	sudo ovs-ofctl add-flow $BRIDGE in_port=2,idle_timeout=180,priority=33001,udp,tp_dst=$PORT,actions=output:1
 }
-for i in {6738..6838}; do
-	add_port_to_flow $i
+
+for i in $TEST_PORTS; do
+	add_port_to_flow $(($i + 6738))
 done
 
 echo -e "\033[32m------------------                             ------------------	\033[0m"
