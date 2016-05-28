@@ -47,7 +47,7 @@ char *bufpool_get(unsigned int port)
 		return NULL;
 
 	int i = port - start;
-	if (udpbp[i].ref_cnt++)
+	if (__sync_fetch_and_add(&udpbp[i].ref_cnt, 1))
 		pthread_mutex_lock(&udpbp[i].mutex);
 
 	return udpbp[i].buf;
@@ -59,6 +59,6 @@ void bufpool_put(unsigned int port)
 		return;
 
 	int i = port - start;
-	if (__sync_sub_and_fetch(&udpbp[i].ref_cnt, 1))
+	if (udpbp[i].ref_cnt && __sync_sub_and_fetch(&udpbp[i].ref_cnt, 1))
 		pthread_mutex_unlock(&udpbp[i].mutex);
 }
