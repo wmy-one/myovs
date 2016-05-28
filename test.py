@@ -15,7 +15,8 @@ if os.geteuid() != 0:
 
 parser = argparse.ArgumentParser(prog='PROG')
 parser = argparse.ArgumentParser(description="An experiment about openvswitch.")
-parser.add_argument("-v", help="enable print some debug messages", default=False, action="store_true")
+parser.add_argument("-v", help="enable print some debug messages and keep the OVS setting",
+                    default=False, action="store_true")
 parser.add_argument("-t", help="time in seconds to test (default 10 secs)", default=10, type=int)
 args = parser.parse_args()
 
@@ -63,8 +64,10 @@ def udp_test():
     while time.time() - start < args.t:
         time.sleep(1)
 
-def kill_childs():
+def rollback_netenv():
     os.system("ps -aux|grep cs | grep udp | awk '{print $2}' | xargs -i kill {}")
+    if args.v != True:
+        os.system("bash ovs_destroy.sh")
 
 if __name__ == "__main__":
     try:
@@ -83,4 +86,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
 
-    kill_childs()
+    rollback_netenv()
