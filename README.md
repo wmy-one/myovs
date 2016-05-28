@@ -18,16 +18,14 @@ Network Topology:
 Usage:
 -----
 ``` shell
-$ sudo python test.py --help
-
 usage: test.py [-h] [-v] [-t T]
 
 An experiment about openvswitch.
 
 optional arguments:
   -h, --help  show this help message and exit
-  -v          enable print some debug messages and keep the OVS setting
-  -t T        time in seconds to test (default 10 secs)
+  -v          print some debug messages and keep the OVS setting alive
+  -t T        time in seconds to UDP test (default 10 secs)
 ```
 
 TODO

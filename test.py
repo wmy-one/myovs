@@ -18,9 +18,9 @@ if os.geteuid() != 0:
 
 parser = argparse.ArgumentParser(prog='PROG')
 parser = argparse.ArgumentParser(description="An experiment about openvswitch.")
-parser.add_argument("-v", help="enable print some debug messages and keep the OVS setting",
+parser.add_argument("-v", help="print some debug messages and keep the OVS setting alive",
                     default=False, action="store_true")
-parser.add_argument("-t", help="time in seconds to test (default 10 secs)", default=10, type=int)
+parser.add_argument("-t", help="time in seconds to UDP test (default 10 secs)", default=10, type=int)
 args = parser.parse_args()
 
 # set up the ovs parameters
