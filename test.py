@@ -57,52 +57,14 @@ def udp_test():
     os.system("ip netns exec ns1 ./cstest/run.sh -s &")
     os.system("ip netns exec ns2 ./cstest/run.sh -c &> /dev/null &")
 
+    # wait for test timeout
+    debug("Start to listen the Packet-Per-Second in server")
+    start = time.time();
+    while time.time() - start < args.t:
+        time.sleep(1)
+
 def kill_childs():
     os.system("ps -aux|grep cs | grep udp | awk '{print $2}' | xargs -i kill {}")
-
-
-# listen data flow
-total_pps = 0
-prev_total_pps = 0
-total_pps_cnt = 0
-
-def get_flow():
-    global total_pps
-    global prev_total_pps
-
-    total_pps = 0
-    ss = os.popen("ovs-ofctl dump-flows $BRIDGE | sed -n '/tp_dst/p' | "
-                  "awk '{print $4}' | sed 's/[^0-9]//g'").readlines()
-    for s in ss:
-        port_pps = int(s)
-        total_pps += port_pps
-
-    current_pps = total_pps - prev_total_pps
-    prev_total_pps = total_pps
-    return current_pps
-
-def listen_flow():
-    global total_pps_cnt
-
-    debug("Start to listen the pps of OVS")
-    time.sleep(1)
-    start = time.time()
-    while True:
-        pps_start = time.clock()
-
-        cur_pps = get_flow()
-        total_pps_cnt += 1
-
-        print "OVS's pps (1024 byte/packet) is %f Mpps"%(cur_pps / 1024.0 / 1024.0)
-        print "OVS's pps (16 byte/packet)   is %f Mpps"%(cur_pps * 16 / 1024.0 / 1024.0)
-        print "--------------------------------------------"
-
-        while ((time.clock() - pps_start) < 1.0005):
-            pass
-
-        end = time.time()
-        if int(end - start) > args.t:
-            return 0;
 
 if __name__ == "__main__":
     try:
@@ -115,15 +77,10 @@ if __name__ == "__main__":
             raise SystemExit, 0
 
         udp_test()
-        listen_flow()
 
     except SystemExit:
         sys.exit(1)
     except KeyboardInterrupt:
         pass
-
-    if prev_total_pps != 0:
-        debug("Average values")
-        print "Average pps (1024 byte/packet) is %f Mpps"%(total_pps / total_pps_cnt / 1024.0 / 1024.0)
 
     kill_childs()
