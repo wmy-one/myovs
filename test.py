@@ -27,6 +27,7 @@ args = parser.parse_args()
 os.environ["BRIDGE"]="ykk-ovs-test"
 os.environ["SERVER_IP"]="10.1.1.4"
 os.environ["CLIENT_IP"]="10.1.1.5"
+os.environ["SERVER_SPORT"]="6783"
 os.environ["TEST_PORTS"]="100"
 
 def debug(string):
@@ -62,8 +63,8 @@ def ping_test():
 
 def udp_test_byte():
     # run udp test on background
-    os.system("ip netns exec ns1 ./cstest/run.sh -s -spn $TEST_PORTS -pbs $PERBUF_SIZE &")
-    os.system("ip netns exec ns2 ./cstest/run.sh -c -spn $TEST_PORTS -pbs $PERBUF_SIZE &")
+    os.system("ip netns exec ns1 ./cstest/run.sh -s -spn $TEST_PORTS -pbs $PERBUF_SIZE -sport $SERVER_SPORT &")
+    os.system("ip netns exec ns2 ./cstest/run.sh -c -spn $TEST_PORTS -pbs $PERBUF_SIZE -sport $SERVER_SPORT &")
 
     # wait for test timeout
     start = time.time();

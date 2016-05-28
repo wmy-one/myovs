@@ -70,7 +70,7 @@ function add_port_to_flow {
 i=$TEST_PORTS
 while [ $i -gt 0 ]; do
 	let 'i -= 1'
-	add_port_to_flow $(($i + 6738))
+	add_port_to_flow $(($i + $SERVER_SPORT))
 done
 
 echo -e "\033[32m------------------                             ------------------	\033[0m"
