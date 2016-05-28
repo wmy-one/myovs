@@ -44,17 +44,23 @@ int udp_port_init(struct udp *udp, const char *server_ip)
 
 	udp->sfd = sfd;
 
+	opt = udp->buf_size * 8;
+	if (setsockopt(sfd, SOL_SOCKET, SO_RCVBUF, &opt, sizeof(opt)) < 0)
+		printf("failed to set sock SO_RCVBUF\n");
+	if (setsockopt(sfd, SOL_SOCKET, SO_SNDBUF, &opt, sizeof(opt)) < 0)
+		printf("failed to set sock SO_SNDBUF\n");
+
 	return 0;
 }
 
 struct udp *udp_ports_init(const char *server_ip, unsigned int start_port,
-						   unsigned int port_num)
+						   unsigned int port_num, unsigned int buf_size)
 {
 	struct udp *udp;
 	int ret;
 	int i;
 
-	if (start_port + port_num > 65535)
+	if (start_port + port_num > 65535 || buf_size == 0)
 		return NULL;
 
 	udp = (struct udp *)malloc(port_num * sizeof(*udp));
@@ -65,6 +71,7 @@ struct udp *udp_ports_init(const char *server_ip, unsigned int start_port,
 
 	for (i = 0; i < port_num; i++) {
 		udp[i].port = start_port + i;
+		udp[i].buf_size = buf_size;
 		ret = udp_port_init(&udp[i], server_ip);
 		if (ret < 0)
 			goto udp_port_init_failed;

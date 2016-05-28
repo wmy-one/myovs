@@ -4,7 +4,7 @@ LIBS = -levent
 
 all: clientudp serverudp
 
-serverudp: server.c udp.c
+serverudp: server.c udp.c bufpool.c
 	$(CC) $(CFLAGS) -o ${OUT}/$@ $^ $(LIBS)
 
 clientudp: client.c udp.c

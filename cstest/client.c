@@ -18,19 +18,19 @@ static int addsingal(int sig, void (*handler)(int))
 	return sigaction(sig, &sa, NULL);
 }
 
-void init_send_buffer(char *buf)
+void init_send_buffer(char *buf, unsigned int size)
 {
 	struct timeval before;
 	uint32_t  sec, usec;
 
-	if (!buf)
+	if (!buf || size < 8)
 		return;
 
 	gettimeofday(&before, 0);
 	sec = htonl(before.tv_sec);
 	usec = htonl(before.tv_usec);
 
-	bzero(buf, BUFLEN);
+	bzero(buf, size);
 	set_send_buf_head(buf);
 	memcpy(buf+4, &sec, sizeof(sec));
 	memcpy(buf+8, &usec, sizeof(usec));
@@ -39,20 +39,21 @@ void init_send_buffer(char *buf)
 int main(int argc, char *argv[])
 {
 	struct udp *client;
-	char buf[BUFLEN];
 	int i;
 
-	if (argc != 4) {
-		ERR("./xxx [Host IP] [Start port] [ports Number]");
+	if (argc != 5) {
+		ERR("./xxx [Host IP] [Start port] [ports Number] [PerBuf Size]");
 		return 1;
 	}
 
 	const char *server_ip = argv[1];
 	unsigned int server_port = atoi(argv[2]);
 	unsigned int port_num = atoi(argv[3]);
+	unsigned int perbuf_size = atoi(argv[4]);
 	assert(server_port + port_num <= 65535);
+	assert(perbuf_size >= 8);
 
-	client = udp_ports_init(server_ip, server_port, port_num);
+	client = udp_ports_init(server_ip, server_port, port_num, perbuf_size);
 	assert(client != NULL);
 
 	int epfd = udp_epoll_init(client, port_num, EPOLLOUT);
@@ -73,15 +74,16 @@ int main(int argc, char *argv[])
 	addsingal(SIGINT, loop_over);
 	addsingal(SIGTERM, loop_over);
 
+	char *buf = (char *)malloc(perbuf_size);
 	while (!stop) {
 		int nfds = epoll_wait(epfd, events, port_num, -1);
 		for (i = 0; i < nfds; i++) {
 			if (events[i].events & EPOLLOUT) {
 				struct udp *udp = (struct udp *)events[i].data.ptr;
 
-				init_send_buffer(buf);
+				init_send_buffer(buf, udp->buf_size);
 
-				if (sendto(udp->sfd, buf, BUFLEN, 0, (struct sockaddr *)&udp->si,
+				if (sendto(udp->sfd, buf, udp->buf_size, 0, (struct sockaddr *)&udp->si,
 						   sizeof(struct sockaddr_in)) == -1) {
 					ERR("udp[%d] port[%d] send failed\n", udp->sfd, udp->port);
 					break;

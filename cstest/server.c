@@ -2,6 +2,12 @@
 #include <pthread.h>
 
 #include "cs_com.h"
+#include "bufpool.h"
+
+struct ppstimer {
+	struct event evtimer;
+	int perbuf_size;
+};
 
 // Globol libevent base handler
 static struct event_base *base;
@@ -51,7 +57,7 @@ static void signal_cb(evutil_socket_t fd, short event, void *arg)
 void clock_cb(int fd, short event, void *arg)
 {
 	struct timeval tv = { .tv_sec = 1, tv.tv_usec = 0};
-	struct event *evtimer = (struct event *)arg;
+	struct ppstimer *pt = (struct ppstimer *)arg;
 
 	static long pre_tot_packets = 0;
 	static long cur_pps = 0;
@@ -64,15 +70,15 @@ void clock_cb(int fd, short event, void *arg)
 	cur_pps = (tot_packets - pre_tot_packets);
 	pre_tot_packets = tot_packets;
 
-	printf("PPS (1024 byte/packet) is %fMpps\n", cur_pps / 1000000.0);
+	printf("PPS (%d byte/packet) is %fMpps\n", pt->perbuf_size, cur_pps / 1000000.0);
 
 	// no need lock for this g_avr_pps
 	g_avr_pps = g_avr_pps * cnt_pps++ + cur_pps;
 	g_avr_pps /= cnt_pps;
 
 	// clock now...
-	evtimer_del(evtimer);
-	evtimer_add(evtimer, &tv);
+	evtimer_del(&pt->evtimer);
+	evtimer_add(&pt->evtimer, &tv);
 }
 
 static void udp_cb(const int sock, short int which, void *arg)
@@ -80,9 +86,12 @@ static void udp_cb(const int sock, short int which, void *arg)
 	struct udp *udp = (struct udp *)arg;
 	struct sockaddr_in si_other;
 	int slen = sizeof(si_other);
-	char buf[BUFLEN];
 
-	if (recvfrom(udp->sfd, buf, BUFLEN, 0, (struct sockaddr *)&si_other,
+	char *buf = bufpool_get(udp->port);
+	if (!buf)
+		return;
+
+	if (recvfrom(udp->sfd, buf, udp->buf_size, 0, (struct sockaddr *)&si_other,
 				(socklen_t *)&slen) == -1) {
 		ERR("udp[%d] port[%d] receive failed\n", udp->sfd, udp->port);
 		return;
@@ -100,6 +109,9 @@ static void udp_cb(const int sock, short int which, void *arg)
 	gettimeofday(&arrival_time, 0);
 	memcpy(&sec, buf+4, sizeof(sec));
 	memcpy(&usec, buf+8, sizeof(usec));
+
+	bufpool_put(udp->port);
+
 	sec = ntohl(sec);
 	usec = ntohl(usec);
 	sent_time.tv_sec = sec;
@@ -110,17 +122,23 @@ static void udp_cb(const int sock, short int which, void *arg)
 
 int main(int argc, char *argv[])
 {
-	if (argc != 3) {
-		ERR("./xxx [Start Port] [Ports Number]");
+	if (argc != 4) {
+		ERR("./xxx [Start Port] [Ports Number] [PerBuf Size]");
 		return 1;
 	}
 
 	unsigned int start_port = atoi(argv[1]);
 	unsigned int port_num = atoi(argv[2]);
+	unsigned int perbuf_size = atoi(argv[3]);
 	assert(start_port + port_num <= 65535);
+	assert(perbuf_size >= 8);
+
+	if (bufpool_init(perbuf_size, start_port, port_num) < 0)
+		return -1;
 
 	// init server udp ports
-	struct udp *server = udp_ports_init((const char *)INADDR_ANY, start_port, port_num);
+	struct udp *server = udp_ports_init((const char *)INADDR_ANY, start_port,
+										port_num, perbuf_size);
 	assert(server != NULL);
 
 	// create the event base handler and init the event
@@ -136,10 +154,10 @@ int main(int argc, char *argv[])
 
 	// create the clock timer event for caculate PPS
 	struct timeval tv = { .tv_sec = 1, tv.tv_usec = 0};
-	struct event evtimer;
-	evtimer_set(&evtimer, clock_cb, &evtimer);
-	event_base_set(base, &evtimer);
-	evtimer_add(&evtimer, &tv);
+	struct ppstimer pt = { .perbuf_size = perbuf_size };
+	evtimer_set(&pt.evtimer, clock_cb, &pt);
+	event_base_set(base, &pt.evtimer);
+	evtimer_add(&pt.evtimer, &tv);
 
 	// create the io event for listen mutilate ports
 	struct event **evio = (struct event **)malloc(port_num * (sizeof(*evio)));
@@ -151,7 +169,7 @@ int main(int argc, char *argv[])
 	// loop now...
 	event_base_dispatch(base);
 
-	printf("Average pps (1024 byte/packet) = %fMpps\n", g_avr_pps / 1000000.0);
+	printf("Average pps (%d byte/packet) = %fMpps\n", perbuf_size, g_avr_pps / 1000000.0);
 	printf("Average Latency = %.3fms\n", recaclu_delay_time(NULL, NULL) / 1000.0);
 	printf("Min Latency     = %.3fms\n", min_latency / 1000.0);
 	printf("Max Latency     = %.3fms\n", max_latency / 1000.0);

@@ -21,7 +21,6 @@
 #define DBG(format, ...)
 #endif
 
-#define BUFLEN			1024
 #define TEST_DATA		((char)0xAA)
 
 static inline int check_recv_buf_head(const char *buf)
