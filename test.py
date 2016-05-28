@@ -60,16 +60,28 @@ def ping_test():
         return -1
     return 0
 
-def udp_test():
+def udp_test_byte():
     # run udp test on background
-    os.system("ip netns exec ns1 ./cstest/run.sh -s -spn $TEST_PORTS &")
-    os.system("ip netns exec ns2 ./cstest/run.sh -c -spn $TEST_PORTS &")
+    os.system("ip netns exec ns1 ./cstest/run.sh -s -spn $TEST_PORTS -pbs $PERBUF_SIZE &")
+    os.system("ip netns exec ns2 ./cstest/run.sh -c -spn $TEST_PORTS -pbs $PERBUF_SIZE &")
 
     # wait for test timeout
-    debug("Start to listen the Packet-Per-Second in server")
     start = time.time();
     while time.time() - start < args.t:
         time.sleep(1)
+
+    # kill the unused backgroud test
+    os.system("ps -aux|grep cs | grep udp | awk '{print $2}' | xargs -i kill {}")
+
+def udp_test_1024byte():
+    debug("Start to run UDP test (1024 byte/packet)")
+    os.environ["PERBUF_SIZE"]="1024"
+    udp_test_byte()
+
+def udp_test_64byte():
+    debug("Start to run UDP test (64 byte/packet)")
+    os.environ["PERBUF_SIZE"]="64"
+    udp_test_byte()
 
 def rollback_netenv():
     os.system("ps -aux|grep cs | grep udp | awk '{print $2}' | xargs -i kill {}")
@@ -86,7 +98,9 @@ if __name__ == "__main__":
         if ret != 0:
             raise SystemExit, 0
 
-        udp_test()
+        udp_test_1024byte()
+
+        udp_test_64byte()
 
     except SystemExit:
         pass
