@@ -15,11 +15,7 @@ trap 'exit 1' SIGINT
 trap 'kill $(jobs -p) &> /dev/null' EXIT
 
 # forcely clean up network environment
-ovs-vsctl del-br $BRIDGE &> /dev/null
-ip link delete ovs-tap1  &> /dev/null
-ip link delete ovs-tap2  &> /dev/null
-ip netns delete ns1      &> /dev/null
-ip netns delete ns2      &> /dev/null
+bash ovs_destroy.sh
 
 # add the namespaces
 ip netns add ns1
