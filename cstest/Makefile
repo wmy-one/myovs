@@ -1,12 +1,14 @@
-OUT=out
+OUT = out
+CFLAGS = -Wall -D_POSIX_C_SOURCE=200112L -D_BSD_SOURCE -std=c99
+LIBS = -levent
 
 all: clientudp serverudp
 
-clientudp: udp.c client.c
-	gcc -Wall -Wextra -D_POSIX_C_SOURCE=200112L -D_BSD_SOURCE -std=c99 udp.c client.c -o ${OUT}/clientudp
+serverudp: server.c udp.c
+	$(CC) $(CFLAGS) -o ${OUT}/$@ $^ $(LIBS)
 
-serverudp: udp.c server.c
-	gcc -Wall -Wextra -D_POSIX_C_SOURCE=200112L -D_BSD_SOURCE -std=c99 udp.c server.c -o ${OUT}/serverudp
+clientudp: client.c udp.c
+	$(CC) $(CFLAGS) -o ${OUT}/$@ $^ $(LIBS)
 
 clean:
 	rm -rf out/*

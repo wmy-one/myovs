@@ -8,6 +8,16 @@ static void loop_over(int sig)
 	stop = 1;
 }
 
+static int addsingal(int sig, void (*handler)(int))
+{
+	struct sigaction sa;
+	bzero(&sa, sizeof(sa));
+	sa.sa_handler = handler;
+	sa.sa_flags |= SA_RESTART;
+	sigfillset(&sa.sa_mask);
+	return sigaction(sig, &sa, NULL);
+}
+
 void init_send_buffer(char *buf)
 {
 	struct timeval before;
@@ -64,6 +74,7 @@ int main(int argc, char *argv[])
 				if (sendto(udp->sfd, buf, BUFLEN, 0, (struct sockaddr *)&udp->si,
 						   sizeof(struct sockaddr_in)) == -1) {
 					ERR("udp[%d] port[%d] send failed\n", udp->sfd, udp->port);
+					break;
 				}
 			}
 		}

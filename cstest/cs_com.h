@@ -43,15 +43,4 @@ static inline void set_send_buf_head(char *buf)
 	buf[2] = TEST_DATA; buf[3] = ~TEST_DATA;
 }
 
-static int addsingal(int sig, void (*handler)(int))
-{
-	struct sigaction sa;
-	bzero(&sa, sizeof(sa));
-	sa.sa_handler = handler;
-	sa.sa_flags |= SA_RESTART;
-	sigfillset(&sa.sa_mask);
-	return sigaction(sig, &sa, NULL);
-}
-
-
 #endif /* __CS_COMMON_HEAD__ */
