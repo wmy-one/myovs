@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <event.h>
+#include <pthread.h>
 
 #include "cs_com.h"
 
@@ -10,6 +11,9 @@ static struct event_base *base;
 static unsigned long long g_tot_packets = 0;
 static unsigned long g_avr_pps = 0;
 
+static unsigned long min_latency = 9999;
+static unsigned long max_latency = 0;
+pthread_mutex_t mutex_latency = PTHREAD_MUTEX_INITIALIZER;
 
 static unsigned long long recaclu_delay_time(struct timeval *st,
 								 struct timeval *et)
@@ -24,6 +28,13 @@ static unsigned long long recaclu_delay_time(struct timeval *st,
 	time1 = st->tv_sec * 1000000UL + st->tv_usec;
 	time2 = et->tv_sec * 1000000UL + et->tv_usec;
 	timediff = (time1 > time2) ? (time1 - time2) : (time2 - time1);
+
+	pthread_mutex_lock(&mutex_latency);
+	if (timediff < min_latency)
+		min_latency = timediff;
+	else if (timediff > max_latency)
+		max_latency = timediff;
+	pthread_mutex_unlock(&mutex_latency);
 
 	__sync_fetch_and_add(&delay_times, timediff);
 	__sync_fetch_and_add(&transit_cnt, 1);
@@ -142,7 +153,9 @@ int main(int argc, char *argv[])
 	event_base_dispatch(base);
 
 	printf("Average pps (1024 byte/packet) = %fMpps\n", g_avr_pps / 1000000.0);
-	printf("Average delay time = %.3fms\n", recaclu_delay_time(NULL, NULL) / 1000.0);
+	printf("Average Latency = %.3fms\n", recaclu_delay_time(NULL, NULL) / 1000.0);
+	printf("Min Latency     = %.3fms\n", min_latency / 1000.0);
+	printf("Max Latency     = %.3fms\n", max_latency / 1000.0);
 
 	udp_ports_deinit(server, port_num);
 	return 0;
