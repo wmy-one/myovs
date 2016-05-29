@@ -23,7 +23,7 @@ void init_send_buffer(char *buf, unsigned int size)
 	struct timeval before;
 	uint32_t  sec, usec;
 
-	if (!buf || size < 8)
+	if (!buf || size < 12)
 		return;
 
 	gettimeofday(&before, 0);
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
 	unsigned int port_num = atoi(argv[3]);
 	unsigned int perbuf_size = atoi(argv[4]);
 	assert(server_port + port_num <= 65535);
-	assert(perbuf_size >= 8);
+	assert(perbuf_size >= 12);
 
 	client = udp_ports_init(server_ip, server_port, port_num, perbuf_size);
 	assert(client != NULL);

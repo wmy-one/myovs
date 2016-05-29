@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
 	unsigned int port_num = atoi(argv[2]);
 	unsigned int perbuf_size = atoi(argv[3]);
 	assert(start_port + port_num <= 65535);
-	assert(perbuf_size >= 8);
+	assert(perbuf_size >= 12);
 
 	if (bufpool_init(perbuf_size, start_port, port_num) < 0)
 		return -1;
