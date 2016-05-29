@@ -122,6 +122,8 @@ static void udp_cb(const int sock, short int which, void *arg)
 
 int main(int argc, char *argv[])
 {
+	unsigned int i;
+
 	if (argc != 4) {
 		ERR("./xxx [Start Port] [Ports Number] [PerBuf Size]");
 		return 1;
@@ -146,11 +148,13 @@ int main(int argc, char *argv[])
 	event_init();
 
 	// create the signal event for catching interrupts
-	struct event *evsignal;
-	evsignal = evsignal_new(base, SIGINT, signal_cb, base);
-	evsignal = evsignal_new(base, SIGHUP, signal_cb, base);
-	evsignal = evsignal_new(base, SIGTERM, signal_cb, base);
-	event_add(evsignal, NULL);
+	struct event *evsignal[3];
+	evsignal[0] = evsignal_new(base, SIGINT, signal_cb, base);
+	event_add(evsignal[0], NULL);
+	evsignal[1] = evsignal_new(base, SIGHUP, signal_cb, base);
+	event_add(evsignal[1], NULL);
+	evsignal[2] = evsignal_new(base, SIGTERM, signal_cb, base);
+	event_add(evsignal[2], NULL);
 
 	// create the clock timer event for caculate PPS
 	struct timeval tv = { .tv_sec = 1, tv.tv_usec = 0};
@@ -161,7 +165,7 @@ int main(int argc, char *argv[])
 
 	// create the io event for listen mutilate ports
 	struct event **evio = (struct event **)malloc(port_num * (sizeof(*evio)));
-	for (int i = 0; i < port_num; i++) {
+	for (i = 0; i < port_num; i++) {
 		evio[i] = event_new(base, server[i].sfd, EV_READ | EV_PERSIST, udp_cb, &server[i]);
 		event_add(evio[i], NULL);
 	}
@@ -174,6 +178,14 @@ int main(int argc, char *argv[])
 	printf("Min Latency     = %.3fms\n", min_latency / 1000.0);
 	printf("Average Latency = %.3fms\n", recaclu_delay_time(NULL, NULL) / 1000.0);
 	printf("Average PPS (%d byte/packet) = %fMpps\n", perbuf_size, g_avr_pps / 1000000.0);
+
+	// delete the events rightly
+	evtimer_del(&pt.evtimer);
+	for (i = 0; i < sizeof(evsignal) / sizeof(evsignal[0]); i++)
+		event_free(evsignal[i]);
+	for (i = 0; i < port_num; i++)
+		event_free(evio[i]);
+	event_base_free(base);
 
 	udp_ports_deinit(server, port_num);
 	return 0;
