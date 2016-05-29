@@ -62,3 +62,12 @@ void bufpool_put(unsigned int port)
 	if (udpbp[i].ref_cnt && __sync_sub_and_fetch(&udpbp[i].ref_cnt, 1))
 		pthread_mutex_unlock(&udpbp[i].mutex);
 }
+
+void bufpool_deinit(void)
+{
+	if (!udpbp)
+		return;
+
+	free(udpbp[0].buf);
+	free(udpbp);
+}

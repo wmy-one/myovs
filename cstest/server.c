@@ -188,5 +188,6 @@ int main(int argc, char *argv[])
 	event_base_free(base);
 
 	udp_ports_deinit(server, port_num);
+	bufpool_deinit();
 	return 0;
 }
