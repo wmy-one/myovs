@@ -35,29 +35,29 @@ TODO
 References:
 ------
 
-[基于 Open vSwitch 的 OpenFlow 实践](1)
+[基于 Open vSwitch 的 OpenFlow 实践][1]
 
-[使用open vswitch构建虚拟网络](2)
+[使用open vswitch构建虚拟网络][2]
 
-[Linux Switching – Interconnecting Namespaces](3)
+[Linux Switching – Interconnecting Namespaces][3]
 
-[How to Connect network namespaces using OpenvSwitch and veth pairs](4)
+[How to Connect network namespaces using OpenvSwitch and veth pairs][4]
 
-[UDP made simple](5)
+[UDP made simple][5]
 
-[udp&tcp 对 epoll 的共用](6)
+[udp&tcp 对 epoll 的共用][6]
 
-[Openflow 90 minutes](7)
+[Openflow 90 minutes][7]
 
-[openflow-spec-v1.1.0.pdf](8)
+[openflow-spec-v1.1.0.pdf][8]
 
-[Openv Switch 完全使用手册](9)
+[Openv Switch 完全使用手册][9]
 
-[Comparing sFlow and NetFlow in a vSwitch](10)
+[Comparing sFlow and NetFlow in a vSwitch][10]
 
-[Working with an event loop](11)
+[Working with an event loop][11]
 
-[[Libevent-users] multiple events handling](12)
+[Libevent-users multiple events handling][12]
 
 
 [12]: http://archives.seul.org/libevent/users/Jan-2010/msg00041.html
